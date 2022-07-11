@@ -6,7 +6,11 @@ import dimod
 from dwave.system import LeapHybridSampler, LeapHybridBQMSampler
 from pyqubo import Array
 
+# 学生&教員データ
 classcsv = pd.read_csv("list.csv", encoding="UTF-8", sep=",")
+# 教員同士の愛称
+avoidcsv = pd.read_csv("avoid.csv", encoding="UTF-8", sep=",", header=None)
+
 #学生数
 n_students = len(classcsv)
 #教員数
@@ -15,6 +19,10 @@ for i in range(n_students):
   if classcsv.iloc[i]['ゼミ教員'] not in teachers:
     teachers.append(classcsv.iloc[i]['ゼミ教員'])
 n_teachers = len(teachers)
+
+avoidlist = []
+for i in range(len(avoidcsv)):
+  avoidlist.append((teachers.index(avoidcsv[i][0]), teachers.index(avoidcsv[i][1])))
 
 NROOM = 4
 n_room_student = n_students / NROOM
@@ -37,6 +45,10 @@ for j in range(n_students):
   teacher = teachers.index(classcsv.iloc[j]["ゼミ教員"])
   for i in range(NROOM):
     p += x[i][j] * x[i][n_students + teacher]
+# 教員忌避リスト
+for it in avoidlist:
+  for i in range(NROOM):
+    p += x[i][it[0]] * x[i][it[1]]
 
 
 model = p.compile()
